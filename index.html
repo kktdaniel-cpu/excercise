@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="ko" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>G-Asset Fairway 클럽 운영 계획</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chosen Palette: Calm Neutrals (Beige, Warm Gray, Soft Green) -->
+    <!-- Application Structure Plan: A single-page website layout with a sticky top navigation bar (SPA behavior). Nav links will smoothly scroll to dedicated sections: '소개' (Overview), '조직' (Organization), '활동' (Activities), '회비' (Finances), and '윤리 강령' (Ethics). This structure directly translates the report's sections into a familiar, user-friendly web navigation model, making information easy to find. The '조직' section will feature a donut chart for member composition (A/B groups), and '활동' will use tabs to separate regular/special activities, enhancing interactivity and clarity over the static text. -->
+    <!-- Visualization & Content Choices:
+1. Report Info: 회원 구성 (Member Comp.) - A그룹 (18), B그룹 (12).
+   Goal: Inform - Show the split between skilled and beginner members.
+   Viz/Presentation: Donut Chart.
+   Interaction: Tooltip on hover.
+   Justification: A donut chart is the clearest way to show part-to-whole proportions for two categories.
+   Library/Method: Chart.js (Canvas).
+2. Report Info: 주요 활동 계획 (Activity Plan) - Regular vs Special.
+   Goal: Organize - Separate two distinct types of activities.
+   Viz/Presentation: Tabbed Interface.
+   Interaction: Click tabs to switch content view.
+   Justification: Tabs are a standard, space-saving UI pattern for organizing related but distinct content blocks.
+   Library/Method: Vanilla JS (show/hide divs).
+3. Report Info: 임원진 구성 (Exec Team), 정기 활동 (Regular Activities), 재정 계획 (Financial Plan).
+   Goal: Inform - Present structured data clearly.
+   Viz/Presentation: Styled HTML Tables (Tailwind).
+   Interaction: None (static display).
+   Justification: The data is already tabular and is best presented as a clean, responsive table.
+   Library/Method: HTML/Tailwind.
+4. Report Info: All other text/lists (Purpose, Ethics, etc.).
+   Goal: Inform - Present textual information legibly.
+   Viz/Presentation: Styled HTML lists and paragraphs.
+   Interaction: None.
+   Justification: Standard text presentation.
+   Library/Method: HTML/Tailwind.
+-->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+      .chart-container {
+        position: relative;
+        width: 100%;
+        max-width: 400px;
+        margin-left: auto;
+        margin-right: auto;
+        height: 300px;
+        max-height: 400px;
+      }
+      @media (min-width: 640px) {
+        .chart-container {
+          height: 350px;
+        }
+      }
+      .tab-content {
+        display: none;
+      }
+      .tab-content.active {
+        display: block;
+      }
+      .tab-btn {
+        border-bottom-width: 2px;
+        border-color: transparent;
+      }
+      .tab-btn.active {
+        border-bottom-color: #047857;
+        color: #047857;
+        font-weight: 600;
+      }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans leading-relaxed">
+
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex-shrink-0">
+                    <a href="#home" class="text-xl font-bold text-emerald-800">G-Asset Fairway</a>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#about" class="text-gray-600 hover:text-emerald-700 px-3 py-2 rounded-md text-sm font-medium">클럽 소개</a>
+                        <a href="#org" class="text-gray-600 hover:text-emerald-700 px-3 py-2 rounded-md text-sm font-medium">조직 구성</a>
+                        <a href="#activities" class="text-gray-600 hover:text-emerald-700 px-3 py-2 rounded-md text-sm font-medium">활동 계획</a>
+                        <a href="#fees" class="text-gray-600 hover:text-emerald-700 px-3 py-2 rounded-md text-sm font-medium">재정 계획</a>
+                        <a href="#ethics" class="text-gray-600 hover:text-emerald-700 px-3 py-2 rounded-md text-sm font-medium">윤리 강령</a>
+                    </div>
+                </div>
+                <div class="-mr-2 flex md:hidden">
+                    <button id="mobile-menu-button" type="button" class="bg-white inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-emerald-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-emerald-500" aria-controls="mobile-menu" aria-expanded="false">
+                        <span class="sr-only">Open main menu</span>
+                        <svg class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                        <svg class="hidden h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </nav>
+        <div class="md:hidden hidden" id="mobile-menu">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#about" class="text-gray-600 hover:text-emerald-700 block px-3 py-2 rounded-md text-base font-medium">클럽 소개</a>
+                <a href="#org" class="text-gray-600 hover:text-emerald-700 block px-3 py-2 rounded-md text-base font-medium">조직 구성</a>
+                <a href="#activities" class="text-gray-600 hover:text-emerald-700 block px-3 py-2 rounded-md text-base font-medium">활동 계획</a>
+                <a href="#fees" class="text-gray-600 hover:text-emerald-700 block px-3 py-2 rounded-md text-base font-medium">재정 계획</a>
+                <a href="#ethics" class="text-gray-600 hover:text-emerald-700 block px-3 py-2 rounded-md text-base font-medium">윤리 강령</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <section id="home" class="text-center py-16 bg-white rounded-lg shadow-lg">
+            <h1 class="text-4xl font-bold text-emerald-800 mb-4">G-Asset Fairway (지애셋 페어웨이)</h1>
+            <p class="text-2xl text-gray-700 mb-12">“**필드 위의 자산 가치, 함께 높여갑니다.**”</p>
+            <div class="max-w-4xl mx-auto grid md:grid-cols-3 gap-8">
+                <div class="bg-emerald-50 p-6 rounded-lg shadow-sm">
+                    <h3 class="text-xl font-semibold text-emerald-700 mb-2">네트워킹 강화</h3>
+                    <p class="text-gray-600">건강한 골프 활동을 통해 학과 동문 간의 심도 있는 인적 네트워크를 구축합니다.</p>
+                </div>
+                <div class="bg-emerald-50 p-6 rounded-lg shadow-sm">
+                    <h3 class="text-xl font-semibold text-emerald-700 mb-2">실력 향상 도모</h3>
+                    <p class="text-gray-600">체계적인 교육과 실전 라운딩으로 초보부터 숙련자까지 함께 성장합니다.</p>
+                </div>
+                <div class="bg-emerald-50 p-6 rounded-lg shadow-sm">
+                    <h3 class="text-xl font-semibold text-emerald-700 mb-2">정보 교류의 장</h3>
+                    <p class="text-gray-600">필드 위에서 부동산 및 자산관리 분야의 최신 정보를 교류합니다.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="about" class="mt-16 py-12 bg-white rounded-lg shadow-lg">
+            <div class="max-w-4xl mx-auto px-6">
+                <h2 class="text-3xl font-bold text-center text-gray-800 mb-8">클럽 개요</h2>
+                <p class="text-center text-gray-600 mb-10 max-w-3xl mx-auto">본 클럽은 경기대학교 일반대학원 부동산자산관리학과 동문들의 교류를 중심으로 운영됩니다. 아래는 클럽의 기본 정보입니다.</p>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white border border-gray-200 rounded-lg">
+                        <tbody class="divide-y divide-gray-200">
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 font-semibold text-gray-700">클럽 명칭</td>
+                                <td class="px-6 py-4 text-gray-600">**G-Asset Fairway (지애셋 페어웨이)** (Graduate Asset Management + Fairway)</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 font-semibold text-gray-700">소속 기관</td>
+                                <td class="px-6 py-4 text-gray-600">경기대학교 일반대학원 부동산자산관리학과</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 font-semibold text-gray-700">설립 목적</td>
+                                <td class="px-6 py-4 text-gray-600">학과 동문 간의 네트워킹 강화 및 건강 증진</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 font-semibold text-gray-700">운영 인원</td>
+                                <td class="px-6 py-4 text-gray-600">약 30명 내외 (초보자 그룹 및 유경험자 그룹 분리 운영)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="org" class="mt-16 py-12">
+            <h2 class="text-3xl font-bold text-center text-gray-800 mb-8">회원 구성 및 조직</h2>
+            <p class="text-center text-gray-600 mb-10 max-w-3xl mx-auto">클럽은 회원의 실력에 따라 두 그룹으로 나누어 효율적인 활동을 도모하며, 체계적인 운영을 위해 초대 임원진을 구성하였습니다.</p>
+            <div class="grid lg:grid-cols-2 gap-12 items-start">
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h3 class="text-xl font-semibold text-center text-gray-700 mb-4">회원 그룹 구성</h3>
+                    <p class="text-center text-gray-600 mb-6">회원 등록 정보를 바탕으로 숙련자(A그룹)와 초보자(B그룹)로 나누어 맞춤형 활동을 지원합니다.</p>
+                    <div class="chart-container">
+                        <canvas id="memberChart"></canvas>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h3 class="text-xl font-semibold text-center text-gray-700 mb-6">초대 임원진</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-white border border-gray-200 rounded-lg">
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">직책</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">성명</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">역할 및 임무</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 font-semibold">초대 회장</td>
+                                    <td class="px-6 py-4">홍인철</td>
+                                    <td class="px-6 py-4 text-sm text-gray-600">클럽의 총괄 운영 및 대표 업무, 대외 관계 담당</td>
+                                </tr>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 font-semibold">고문</td>
+                                    <td class="px-6 py-4">이남형</td>
+                                    <td class="px-6 py-4 text-sm text-gray-600">클럽 운영 전반에 대한 자문 및 대외 관계 지원</td>
+                                </tr>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 font-semibold">총무</td>
+                                    <td class="px-6 py-4">차태회</td>
+                                    <td class="px-6 py-4 text-sm text-gray-600">회원 등록 및 관리, 모임 일정 조율 등 일반 행정 업무 담당</td>
+                                </tr>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 font-semibold">재무</td>
+                                    <td class="px-6 py-4">허진원</td>
+                                    <td class="px-6 py-4 text-sm text-gray-600">클럽 회비 관리, 납부 현황 점검 및 재정 집행 총괄</td>
+                                </tr>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 font-semibold">기획 이사</td>
+                                    <td class="px-6 py-4">김경훈</td>
+                                    <td class="px-6 py-4 text-sm text-gray-600">클럽 활동 및 이벤트 기획, 연간 운영 전략 수립</td>
+                                </tr>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 font-semibold">홍보/마케팅 이사</td>
+                                    <td class="px-6 py-4">김수진</td>
+                                    <td class="px-6 py-4 text-sm text-gray-600">클럽 활동 홍보 콘텐츠 제작, 신규 회원 모집 및 대외 협력 담당</td>
+                                </tr>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 font-semibold">경기/교육 이사</td>
+                                    <td class="px-6 py-4">김형수</td>
+                                    <td class="px-6 py-4 text-sm text-gray-600">A그룹(라운딩) 및 B그룹(교육)의 활동 기획 및 실행 총괄</td>
+                                </tr>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 font-semibold">운영 자문 (특별)</td>
+                                    <td class="px-6 py-4">임홍전</td>
+                                    <td class="px-6 py-4 text-sm text-gray-600">클럽 운영의 주요 사안에 대한 특별 자문 및 지원 제공</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="activities" class="mt-16 py-12 bg-white rounded-lg shadow-lg">
+            <div class="max-w-5xl mx-auto px-6">
+                <h2 class="text-3xl font-bold text-center text-gray-800 mb-8">주요 활동 계획</h2>
+                <p class="text-center text-gray-600 mb-10">클럽은 정기적인 활동과 특별 이벤트를 통해 회원들의 참여와 실력 향상을 동시에 도모합니다. 탭을 클릭하여 각 활동 내용을 확인해 보세요.</p>
+                <div class="border-b border-gray-200 mb-6">
+                    <nav class="-mb-px flex justify-center space-x-8" aria-label="Tabs">
+                        <button class="tab-btn active whitespace-nowrap py-4 px-1 text-sm font-medium text-gray-500 hover:text-emerald-600" data-tab="regular">
+                            정기 활동
+                        </button>
+                        <button class="tab-btn whitespace-nowrap py-4 px-1 text-sm font-medium text-gray-500 hover:text-emerald-600" data-tab="special">
+                            특별 활동
+                        </button>
+                    </nav>
+                </div>
+                
+                <div id="tab-regular" class="tab-content active">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-6 sr-only">정기 활동</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-white border border-gray-200 rounded-lg">
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">활동 구분</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">주기</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">내용</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">비고</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 font-semibold">정기 라운딩 (A그룹)</td>
+                                    <td class="px-6 py-4">분기 1회 (총 4회)</td>
+                                    <td class="px-6 py-4 text-sm text-gray-600">수도권 인근 골프장 18홀 라운딩. 친선 대회 형식 병행.</td>
+                                    <td class="px-6 py-4 text-sm text-gray-600">참가 인원 12~16명 목표</td>
+                                </tr>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 font-semibold">정기 스크린/연습 (B그룹)</td>
+                                    <td class="px-6 py-4">월 1회</td>
+                                    <td class="px-6 py-4 text-sm text-gray-600">레슨 프로 초빙 또는 숙련자 멘토링 기반 집중 교육. 월말 스크린 모의 라운딩.</td>
+                                    <td class="px-6 py-4 text-sm text-gray-600">초보자 실력 집중 향상 목표</td>
+                                </tr>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 font-semibold">월례 모임 (전체)</td>
+                                    <td class="px-6 py-4">격월 1회</td>
+                                    <td class="px-6 py-4 text-sm text-gray-600">학과 네트워킹 및 정보 교류회 (간단한 식사 및 골프 룰/매너 교육 포함)</td>
+                                    <td class="px-6 py-4 text-sm text-gray-600">라운딩 대신 네트워킹에 초점</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div id="tab-special" class="tab-content">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-6 sr-only">특별 활동</h3>
+                    <ul class="space-y-4">
+                        <li class="bg-gray-50 p-4 rounded-lg shadow-sm">
+                            <h4 class="font-semibold text-emerald-700">멘토-멘티 제도</h4>
+                            <p class="text-gray-600">A그룹(숙련자)이 B그룹(초보자)을 일대일로 매칭하여 실질적인 골프 입문을 지원합니다.</p>
+                        </li>
+                        <li class="bg-gray-50 p-4 rounded-lg shadow-sm">
+                            <h4 class="font-semibold text-emerald-700">자산관리 테마 라운딩</h4>
+                            <p class="text-gray-600">골프장 부지, 개발 이슈 등 부동산 관련 주제를 중심으로 대화하며 라운딩을 진행하는 테마 이벤트.</p>
+                        </li>
+                        <li class="bg-gray-50 p-4 rounded-lg shadow-sm">
+                            <h4 class="font-semibold text-emerald-700">연말 시상식 및 정기 총회</h4>
+                            <p class="text-gray-600">연간 활동 보고, 우수 회원 시상 (베스트 스코어, 최다 참여상, 발전상 등), 다음 연도 계획 논의.</p>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="fees" class="mt-16 py-12">
+            <div class="max-w-4xl mx-auto px-6">
+                <h2 class="text-3xl font-bold text-center text-gray-800 mb-8">재정 계획 (안)</h2>
+                <p class="text-center text-gray-600 mb-10">클럽 운영을 위한 재정 계획입니다. 모든 재정은 투명하게 관리 및 공개됩니다.</p>
+                <div class="overflow-x-auto bg-white p-6 rounded-lg shadow-lg">
+                    <table class="min-w-full bg-white border border-gray-200 rounded-lg">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">구분</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">내용</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">비고</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 font-semibold">입회비</td>
+                                <td class="px-6 py-4">50,000원 (최초 1회 납부)</td>
+                                <td class="px-6 py-4 text-sm text-gray-600">클럽 초기 운영 자금 및 비품 구입</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 font-semibold">연회비</td>
+                                <td class="px-6 py-4">100,000원</td>
+                                <td class="px-6 py-4 text-sm text-gray-600">연간 총회 및 운영비 충당</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 font-semibold">정기 라운딩 회비</td>
+                                <td class="px-6 py-4">라운딩 시 별도 책정 (N/1)</td>
+                                <td class="px-6 py-4 text-sm text-gray-600">그린피, 카트비, 캐디피 등 실비 정산</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 font-semibold">스크린/모임 회비</td>
+                                <td class="px-6 py-4">모임 시 실비 정산 (N/1)</td>
+                                <td class="px-6 py-4 text-sm text-gray-600"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="mt-6 bg-emerald-50 border-l-4 border-emerald-500 text-emerald-800 p-4 rounded-md">
+                        <p class="font-semibold">재정 투명성</p>
+                        <p class="text-sm">재무는 모든 수입 및 지출 내역을 기록하고, 분기별로 전체 회원에게 공유하며, 감사의 검토를 받습니다.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="ethics" class="mt-16 py-12 bg-white rounded-lg shadow-lg">
+            <div class="max-w-3xl mx-auto px-6">
+                <h2 class="text-3xl font-bold text-center text-gray-800 mb-8">클럽 윤리 강령</h2>
+                <p class="text-center text-gray-600 mb-10">모든 회원은 건전하고 즐거운 클럽 활동을 위해 다음의 윤리 강령을 준수합니다.</p>
+                <ol class="space-y-4">
+                    <li class="flex items-start">
+                        <span class="flex-shrink-0 flex items-center justify-center h-8 w-8 rounded-full bg-emerald-700 text-white font-bold mr-4">1</span>
+                        <span class="text-gray-700"><strong class="font-semibold">매너 중시:</strong> 필드 위에서는 경기 매너를 최우선으로 하며, 타인을 배려하는 자세로 임합니다.</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="flex-shrink-0 flex items-center justify-center h-8 w-8 rounded-full bg-emerald-700 text-white font-bold mr-4">2</span>
+                        <span class="text-gray-700"><strong class="font-semibold">정시 준수:</strong> 모든 정기/특별 모임은 약속된 시간을 반드시 준수합니다.</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="flex-shrink-0 flex items-center justify-center h-8 w-8 rounded-full bg-emerald-700 text-white font-bold mr-4">3</span>
+                        <span class="text-gray-700"><strong class="font-semibold">네트워킹 존중:</strong> 클럽 활동은 학과 동문 간의 건전한 교류를 목적으로 하며, 무례하거나 사적인 이익만을 추구하는 행위는 지양합니다.</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="flex-shrink-0 flex items-center justify-center h-8 w-8 rounded-full bg-emerald-700 text-white font-bold mr-4">4</span>
+                        <span class="text-gray-700"><strong class="font-semibold">안전 제일:</strong> 안전 사고 예방을 위해 라운딩 중 주의 사항을 철저히 준수합니다.</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="flex-shrink-0 flex items-center justify-center h-8 w-8 rounded-full bg-emerald-700 text-white font-bold mr-4">5</span>
+                        <span class="text-gray-700"><strong class="font-semibold">적극적 참여:</strong> 모든 회원은 클럽의 발전을 위해 자발적이고 적극적으로 활동에 참여합니다.</span>
+                    </li>
+                </ol>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="mt-16 bg-gray-800 text-gray-300 py-8">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm">
+            <p>G-Asset Fairway (지애셋 페어웨이) | 경기대학교 일반대학원 부동산자산관리학과</p>
+            <p class="mt-2">© 2025 G-Asset Fairway. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            const memberChartCtx = document.getElementById('memberChart').getContext('2d');
+            new Chart(memberChartCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['A그룹 (숙련자)', 'B그룹 (초보자)'],
+                    datasets: [{
+                        label: '회원 구성',
+                        data: [18, 12],
+                        backgroundColor: [
+                            '#065f46',
+                            '#34d399'
+                        ],
+                        hoverBackgroundColor: [
+                            '#047857',
+                            '#6ee7b7'
+                        ],
+                        borderColor: '#ffffff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#374151'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed !== null) {
+                                        label += context.parsed + '명';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            
+            const tabs = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const target = tab.getAttribute('data-tab');
+
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+
+                    tabContents.forEach(content => {
+                        content.classList.remove('active');
+                        if (content.id === 'tab-' + target) {
+                            content.classList.add('active');
+                        }
+                    });
+                });
+            });
+
+            
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const mobileLinks = mobileMenu.querySelectorAll('a');
+
+            mobileMenuButton.addEventListener('click', () => {
+                const isExpanded = mobileMenuButton.getAttribute('aria-expanded') === 'true';
+                mobileMenuButton.setAttribute('aria-expanded', !isExpanded);
+                mobileMenu.classList.toggle('hidden');
+                mobileMenuButton.querySelectorAll('svg').forEach(svg => svg.classList.toggle('hidden'));
+            });
+
+            
+            mobileLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    mobileMenu.classList.add('hidden');
+					mobileMenuButton.setAttribute('aria-expanded', 'false');
+                    mobileMenuButton.querySelectorAll('svg').forEach(svg => svg.classList.toggle('hidden'));
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>
